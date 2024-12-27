@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Dropper</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <h1>File Sharing Local Server</h1>
+    <div id="FormDiv">
+        <input type="file" id="fileInput">
+        <progress id="uploadProgress" value="0" max="100" style="width: 80%; display: none;"></progress>
+        <span id="progressText" style="display: none;">0%</span>
+        <button onclick="uploadFile()">Upload File</button>
+        <br>
+        <p>Please Refresh the Page to refresh the feed.</p>
+    </div>
+    <ul id="fileList">
+    {% for file in files %}
+    <li><a href="/uploads/{{ file }}" download>{{ file }}</a></li>
+    {% endfor %}
+</ul>
+
+<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+<script>
+    var socket = io();
+
+    document.getElementById('toggleActiveUsersButton').addEventListener('click', toggleActiveUsers);
+
+    socket.on('new_file', function(data) {
+        var fileList = document.getElementById('fileList');
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        a.href = '/uploads/' + data.filename;
+        a.innerText = data.filename;
+        a.setAttribute('download', data.filename);
+        li.appendChild(a);
+        fileList.appendChild(li);
+    });
+
+    function uploadFile() {
+        var input = document.getElementById('fileInput');
+        var file = input.files[0];
+        if (!file) {
+            alert("No file selected!");
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append('file', file);
+
+        var xhr = new XMLHttpRequest();
+
+        // Show the progress bar and set its initial value
+        var progressBar = document.getElementById('uploadProgress');
+        var progressText = document.getElementById('progressText');
+        progressBar.style.display = 'block';
+        progressText.style.display = 'block';
+        progressBar.value = 0;
+        progressText.textContent = '0%';
+
+        // Track the progress of the upload
+        xhr.upload.addEventListener('progress', function(event) {
+            if (event.lengthComputable) {
+                var percentComplete = Math.round((event.loaded / event.total) * 100);
+                progressBar.value = percentComplete;
+                progressText.textContent = percentComplete + '%'; // Update percentage text
+            }
+        });
+
+        // Hide the progress bar and percentage text once upload is complete
+        xhr.addEventListener('load', function() {
+            if (xhr.status === 200) {
+                console.log("File uploaded successfully");
+                input.value = ''; // Clear the input after upload
+            } else {
+                console.error("File upload failed");
+            }
+            progressBar.style.display = 'none'; // Hide the progress bar
+            progressText.style.display = 'none'; // Hide the percentage text
+        });
+
+        xhr.open('POST', '/upload');
+        xhr.send(formData);
+    }
+
+</script>
+</body>
+</html>
