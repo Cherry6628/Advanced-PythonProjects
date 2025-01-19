@@ -85,4 +85,4 @@ if __name__ == '__main__':
 
     host_ip, port = "192.168.1.35", 5000
 
-    socketio.run(app, host=host_ip, port=port, debug=False)
+    socketio.run(app, host=host_ip, port=port, debug=False, allow_unsafe_werkzeug=True)
