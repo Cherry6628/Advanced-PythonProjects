@@ -9,7 +9,7 @@ from var_config import video, debug
 # from cursor import get_cursor_position
 SetCursorPos = ctypes.windll.user32.SetCursorPos
 del ctypes
-print("\r\033[5A\033[KImports Done.")
+print("\rImports Done.")
 if video:
     video_capture = cv2.VideoCapture(video)
 else:
